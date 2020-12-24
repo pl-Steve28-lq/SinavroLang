@@ -1,0 +1,7 @@
+setup.py
+Sinavro/Sinavro.py
+Sinavro/__init__.py
+Sinavro.egg-info/PKG-INFO
+Sinavro.egg-info/SOURCES.txt
+Sinavro.egg-info/dependency_links.txt
+Sinavro.egg-info/top_level.txt

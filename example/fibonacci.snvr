@@ -1,0 +1,27 @@
+func main() [ 
+    show(fibo(15))
+]
+
+func fibo(n -> int) -> int [
+    arr = <1, 1, 1, 0>
+    res = pow(arr, n)
+    return res(1)
+]
+
+func pow(arr -> array, n -> int) -> array [
+    if n == 0 [ return <1, 0, 0, 1> ]
+    if n == 1 [ return arr ]
+    return mul(pow(arr, toInt((n + n%2)/2)), pow(arr, toInt(n/2)))
+]
+
+func mul(M -> array, N -> array) -> array [
+    a = M(0)
+    b = M(1)
+    c = M(2)
+    d = M(3)
+    e = N(0)
+    f = N(1)
+    g = N(2)
+    h = N(3)
+    return <a*e+b*g, a*f+b*h, c*e+d*g, c*f+d*h>
+]

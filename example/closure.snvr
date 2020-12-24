@@ -1,0 +1,22 @@
+func main() [
+    a = closureTest()
+    show(a(fibo, 15))
+]
+
+func fibo(n -> int) -> int [
+    a = 0
+    b = 1
+    repeat n [
+        c = a
+        a = b
+        b = b+c
+    ]
+    return a
+]
+
+func closureTest() -> Function [
+    func asdf(fnc -> Function, n -> int) -> int[
+        return fnc(n)
+    ]
+    return asdf
+]
