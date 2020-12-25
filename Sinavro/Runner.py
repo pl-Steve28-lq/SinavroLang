@@ -1,15 +1,13 @@
 from Sinavro.Interpreter.Interpreter import Interpreter
 from Sinavro.Parser.Parser import analyze
 
-def Interpret(code, moduleaddr='.', debug=False):
+def Interpret(code, intp, moduleaddr='.', debug=False):
     try:
-        intp = Interpreter()
         analyzed = analyze(code, debug)
         imports, tokens = analyzed['use'], analyzed['function'].child
         # return tokens
         for i in imports:
             intp.importFile(i, moduleaddr)
-            print("", end='')
         intp.interpret(tokens)
         intp.env.get('main').call(intp, [])
     finally:
@@ -17,6 +15,14 @@ def Interpret(code, moduleaddr='.', debug=False):
     return intp
 
 def InterpretFile(file, moduleaddr='.', debug=False):
-    return Interpret(open(file).read(), moduleaddr, debug)
+    return Interpret(open(file).read(), Interpreter(), moduleaddr, debug)
 
-InterpretFile('../example/fibonacci.snvr')
+
+def InterpretLine(moduleaddr='.', debug=False):
+    intp = Interpreter()
+    while True:
+        code = input()
+        if code == 'exit': break
+        try:
+            Interpret(code, intp, moduleaddr, debug)
+        finally: continue

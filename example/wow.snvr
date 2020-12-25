@@ -1,0 +1,54 @@
+func main() [
+    a = dict(<<'asdf', 1>, <'qwer', 2>>)
+    show(find(a, 'asdf'))
+]
+
+func map(fnc, arr) [
+    res = <>
+    foreach(i in arr) [
+        res += fnc(i)
+    ]
+    return res
+]
+
+func reduce(fnc, arr) [
+    res = arr(0)
+    foreach(i in arr) [
+        res = fnc(res, i)
+    ]
+]
+
+func range(n) [
+    i = 0
+    arr = <>
+    repeat n [ 
+        arr += i
+        i += 1
+    ]
+    return arr
+]
+
+func dict(arr) [
+    keyarr = <>
+    valuearr = <>
+    foreach(i in arr) [
+        keyarr += i(0)
+        valuearr += i(1)
+    ]
+    
+    func find(keys) [
+        idx = 0
+        foreach(key in keyarr) [
+            if key == keys [
+                return valuearr(idx)
+            ]
+            idx += 1
+        ]
+        return -1
+    ]
+
+    return <find, arr>
+]
+
+func find(dicts, key) [ d = dicts(0); return d(key) ]
+func add(dicts, arr) [ return dict(dicts(1) + arr) ]

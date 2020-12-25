@@ -2,6 +2,7 @@ from Sinavro.Types.Environment import Environment
 from Sinavro.Types.BaseClass import *
 from Sinavro.Types.Function import Function
 from Sinavro.Parser.SyntaxNode import *
+from Sinavro.Parser.Parser import analyze
 from Sinavro.Interpreter.Exceptions import *
 
 class Interpreter:
@@ -88,6 +89,8 @@ class Interpreter:
             return self.arrayindexing(callee, args)
         elif isinstance(callee, SinavroString):
             return callee.value[args[0].value]
+        elif isinstance(callee, list):
+            return self.arrayindexing(SinavroArray(callee), args)
         else:
             raise SinavroException("Only functions, arrays and strings are callable.")
 
@@ -108,6 +111,15 @@ class Interpreter:
     def visit_stringindex(self, node):
         callee = node.string
         return node.string[int(node.arg.value)]
+
+    def visit_lambda(self, node):
+        if isinstance(node.result, Node): res = [ReturnNode([node.result])]
+        else: res = node.result
+        return Function(FunctionNode(['_lambda', node.args, res]), self.env)
+
+    def visit_lambdacall(self, node):
+        L = self.visit_lambda(node.lambdaf)
+        return L.call(self, node.args)
         
         
     def visit_return(self, node):
@@ -133,6 +145,17 @@ class Interpreter:
         elif t == 'bool': return SinavroBool(v == 'true')
         elif t == 'array':
             return SinavroArray(list(map(self.evaluate, v)))
+
+    def visit_arrayassign(self, node):
+        n = list(map(self.evaluate, node.index))
+        value = self.evaluate(node.value)
+        arr = self.env.get(node.array)
+        item = arr
+        for i in range(len(n)):
+            v = n[i]
+            if i == len(n)-1:
+                item.value[v] = value
+            else: item = item.value[v]
 
 
 
@@ -168,12 +191,21 @@ class Interpreter:
             return self.evaluate(node.true)
         else: return self.evaluate(node.false)
 
-
-
+    def visit_foreach(self, node):
+        env = Environment(self.env)
+        if isinstance(node.array, str): array = self.env.get(node.array)
+        else: array = self.execute(node.array)
+        env.define(node.var, self.execute(CallNode([array, [SinavroInt(0)]])))
+        for i in range(len(array.value)):
+            env.assign(node.var, self.execute(CallNode([array, [SinavroInt(i)]])))
+            self.execute_block(node.code, env)
+            
+        
+        
     ''' Operator Part '''
     
     def visit_binop(self, node):
-        A, op, B = node.child
+        A, op, B = node.left, node.operator, node.right
         a, b = map(self.evaluate, [A, B])
 
         if op == '+':
@@ -217,6 +249,30 @@ class Interpreter:
             return SinavroBool(a == b)
         if op == '!=':
             return SinavroBool(a != b)
+        if op == '+=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '+', B]])))
+                return
+        if op == '-=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '-', B]])))
+                return
+        if op == '*=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '*', B]])))
+                return
+        if op == '/=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '/', B]])))
+                return
+        if op == '%=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '%', B]])))
+                return
+        if op == '**=':
+            if isinstance(A, VarNode):
+                self.env.assign(A.name, self.visit_binop(BinOpNode([[A, '**', B]])))
+                return
         typeerror2(op, a, b)
 
     def visit_unop(self, node):
@@ -238,16 +294,12 @@ class Interpreter:
     def importFile(self, name, addr='.'):
         file = analyze(open(f"{addr}/{name}.snvr").read())
         filename = lambda name: name.split("/")[-1] if "/" in name else name
-        def changeName(func):
-            newfunc = func
-            newfunc.name = f"{filename(name)}.{func.name}"
-            return newfunc
-        self.interpret(list(map(changeName, file['function'].child)))
+        self.interpret(file['function'].child)
         self.imports.append(filename(name))
         if file['use']:
             for i in file['use']:
                 if not filename(i) in self.imports: self.importFile(i)
-        self.env.get(f'{filename(name)}.main').call(self, [])
+        self.env.get('main').call(self, [])
 
 
     def stringify(self, obj):

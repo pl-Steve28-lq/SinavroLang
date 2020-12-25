@@ -30,6 +30,28 @@ class FunctionNode(Node):
 
 
 
+class LambdaNode(Node):
+    def __init__(self, tokens):
+        self.args, self.result = tokens
+
+
+    def execute(self, env):
+        return env.visit_lambda(self)
+
+
+
+
+class LambdaCallNode(Node):
+    def __init__(self, tokens):
+        self.lambdaf, self.args = tokens
+
+
+    def execute(self, env):
+        return env.visit_lambdacall(self)
+
+
+
+
 class ForNode(Node):
     def __init__(self, tokens):
         self.init, self.cond, self.act, self.code = tokens
@@ -37,6 +59,17 @@ class ForNode(Node):
 
     def execute(self, env):
         return env.visit_for(self)
+
+
+
+
+class ForEachNode(Node):
+    def __init__(self, tokens):
+        self.var, self.array, self.code = tokens
+
+
+    def execute(self, env):
+        return env.visit_foreach(self)
 
 
 
@@ -133,6 +166,18 @@ class AssignNode(Node):
 
 
 
+class ArrayAssignNode(Node):
+    def __init__(self, tokens):
+        self.array, self.index = tokens[0].function, tokens[0].args
+        self.value = tokens[1]
+
+
+    def execute(self, env):
+        return env.visit_arrayassign(self)
+
+
+
+
 class BinOpNode(Node):
     def __init__(self, tokens):
         self.left, self.operator, self.right = tokens[0]
@@ -179,7 +224,7 @@ class VarNode(Node):
 
 class ImportNode(Node):
     def __init__(self, tokens):
-        self.name = tokens[0]
+        self.name = tokens[-1]
 
     def execute(self, env):
         return env.visit_import(self)

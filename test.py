@@ -1,3 +1,3 @@
 from Sinavro.Runner import *
 
-InterpretFile('./example/fibonacci.snvr')
+a = InterpretFile('./example/wow.snvr', './example')
