@@ -9,7 +9,9 @@ def Interpret(code, intp, moduleaddr='.', debug=False):
         for i in imports:
             intp.importFile(i, moduleaddr)
         intp.interpret(tokens)
-        intp.env.get('main').call(intp, [])
+        try: intp.env.get('main').call(intp, [])
+        except: pass
+    except Exception as e: raise e
     finally:
         if debug: print(intp.env.values)
     return intp
@@ -21,8 +23,16 @@ def InterpretFile(file, moduleaddr='.', debug=False):
 def InterpretLine(moduleaddr='.', debug=False):
     intp = Interpreter()
     while True:
-        code = input()
-        if code == 'exit': break
+        code = ''
+        print()
+        enter = 0
+        while enter < 2:
+            a = input('>>> ')
+            if a == '': enter += 1
+            else: enter = 0
+            code += a + '\n'
+        if code.strip() == 'exit': break
         try:
             Interpret(code, intp, moduleaddr, debug)
+        except Exception as e: print(f"Error: {e}")
         finally: continue

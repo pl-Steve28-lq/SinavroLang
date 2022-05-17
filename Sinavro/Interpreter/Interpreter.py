@@ -24,7 +24,6 @@ class Interpreter:
                 last_value = self.execute(statement)
         except SinavroException as e:
             print(e)
-
         return str(last_value)
 
     def execute(self, node):
@@ -47,6 +46,7 @@ class Interpreter:
             self.env = env
             for statement in node:
                 self.execute(statement)
+        except Exception as e: raise e
         finally:
             self.env = previous
 
@@ -73,6 +73,15 @@ class Interpreter:
         if n == "len":
             if args[0].type in ['array', 'string']:
                 return len(args[0].value)
+        if n == "readFile":
+            return open(args[0].value).read()
+        if n == "writeFile":
+            try:
+                with open(args[0].value, 'w') as f:
+                    f.write(args[1].value)
+                return self.env.get('true')
+            except: return self.env.get('false')
+            
         if n == "toInt":
             if isinstance(args[0].value, (float, int)): return int(args[0].value)
             if isinstance(args[0].value, (str)):
